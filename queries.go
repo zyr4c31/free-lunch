@@ -16,19 +16,22 @@ func createTables(db *sql.DB) (*sql.Rows, error) {
 	var bytes []byte
 	file, _ := os.Open("schema.sql")
 	file.Read(bytes)
-	rows, err := db.Query(string(bytes))
+	rows, err := db.Query(
+		`CREATE TABLE IF NOT EXISTS restaurants(
+		id INTEGER PRIMARY KEY,
+		name TEXT
+		);`)
 	return rows, err
 }
 
 func selectAllRestaurants(db *sql.DB) ([]Restaurant, error) {
+	var restaurants []Restaurant
 	rows, err := db.Query("select * from restaurants")
 	if err != nil {
 		fmt.Fprintf(os.Stderr, "failed to execute query: %v\n", err)
-		os.Exit(1)
+		return restaurants, err
 	}
 	defer rows.Close()
-
-	var restaurants []Restaurant
 
 	for rows.Next() {
 		var restaurant Restaurant
