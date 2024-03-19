@@ -15,7 +15,7 @@ templ layout() {
 </html>
 }
 
-templ coffee(menuItems []string) {
+templ coffee(menuItems []string, restaurants []Restaurant) {
 @layout() {
 <form hx-boost="true">
 	<fieldset>
@@ -27,5 +27,8 @@ templ coffee(menuItems []string) {
 	</fieldset>
 	<button type="submit">submit</button>
 </form>
+for _, restaurant := range restaurants {
+{ restaurant.Name }
+}
 }
 }
