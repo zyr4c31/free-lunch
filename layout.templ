@@ -1,0 +1,31 @@
+package main
+
+templ layout() {
+<html>
+
+<head>
+	<title>URL AS STATE</title>
+	<script src="htmx.min.js"></script>
+</head>
+
+<body>
+	{ children... }
+</body>
+
+</html>
+}
+
+templ coffee(menuItems []string) {
+@layout() {
+<form hx-boost="true">
+	<fieldset>
+		<legend>Coffee/tea</legend>
+		for _, menuItem := range menuItems {
+		<input id={ menuItem } type="checkbox" name="menu-item" value={ menuItem } checked />
+		<label for={ menuItem }>{ menuItem }</label>
+		}
+	</fieldset>
+	<button type="submit">submit</button>
+</form>
+}
+}
