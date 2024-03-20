@@ -5,16 +5,25 @@ import (
 	"log"
 	"net/http"
 	"os"
+	"time"
 )
 
 func main() {
-	db, dir, connector := db()
-	defer os.RemoveAll(dir)
-	defer connector.Close()
+	dbName := "local.db"
+	primaryUrl := os.Getenv("TURSO_URL")
+	authToken := os.Getenv("TURSO_TOKEN")
+	syncInterval := time.Minute
 
-	log.Println(createTables(db))
+	tursoCfg := TursoEmbeddedReplicaConfig{
+		dbName:       dbName,
+		primaryUrl:   primaryUrl,
+		authToken:    authToken,
+		syncInterval: syncInterval,
+	}
 
-	restaurants, err := selectAllRestaurants(db)
+	log.Println(tursoCfg.createTables())
+
+	restaurants, err := tursoCfg.selectAllRestaurants()
 	if err != nil {
 		log.Println(err)
 	}
@@ -36,4 +45,5 @@ func main() {
 	}
 
 	log.Fatalln(server.ListenAndServe())
+	defer os.RemoveAll(dir)
 }

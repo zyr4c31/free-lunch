@@ -1,9 +1,0 @@
-<html><head><title>URL AS STATE</title><script src=\"htmx.min.js\"></script></head><body>
-</body></html>
-<form hx-boost=\"true\"><fieldset><legend>Coffee/tea</legend> 
-<input id=\"
-\" type=\"checkbox\" name=\"menu-item\" value=\"
-\" checked> <label for=\"
-\">
-</label>
-</fieldset><button type=\"submit\">submit</button></form>
