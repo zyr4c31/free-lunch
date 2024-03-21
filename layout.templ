@@ -1,56 +1,61 @@
 package main
 
+import "github.com/zyr4c31/free-lunch/sqlc"
+
 templ layout(title string) {
-	<html>
-		<head>
-			<title>{ title } | free lunch</title>
-			<script src="htmx.min.js"></script>
-		</head>
-		<body>
-			<div id="error"></div>
-			<nav hx-boost>
-				<a href="/">home</a>
-				<a href="/restaurant">restaurant</a>
-			</nav>
-			<main>
-				{ children... }
-			</main>
-		</body>
-	</html>
+<html>
+
+<head>
+	<title>{ title } | free lunch</title>
+	<script src="htmx.min.js"></script>
+</head>
+
+<body>
+	<div id="error"></div>
+	<nav hx-boost>
+		<a href="/">home</a>
+		<a href="/restaurants">restaurants</a>
+	</nav>
+	<main>
+		{ children... }
+	</main>
+</body>
+
+</html>
 }
 
 templ coffee(menuItems []string) {
-	@layout("coffee") {
-		<form>
-			<fieldset>
-				<legend>Coffee/tea</legend>
-				for _, menuItem := range menuItems {
-					<input id={ menuItem } type="checkbox" name="menu-item" value={ menuItem } checked/>
-					<label for={ menuItem }>{ menuItem }</label>
-				}
-			</fieldset>
-			<button type="submit">submit</button>
-		</form>
-	}
+@layout("coffee") {
+<form>
+	<fieldset>
+		<legend>Coffee/tea</legend>
+		for _, menuItem := range menuItems {
+		<input id={ menuItem } type="checkbox" name="menu-item" value={ menuItem } checked />
+		<label for={ menuItem }>{ menuItem }</label>
+		}
+	</fieldset>
+	<button type="submit">submit</button>
+</form>
+}
 }
 
-templ templRestaurants(name string, restaurants []Restaurant) {
-	@layout("restaurant")
-	<form hx-post="/restaurant">
-		<fieldset>
-			<legend>Create a new Restaurant</legend>
-			<label id="name" name="name">name: </label>
-			<input id="name" name="name" value={ name }/>
-			<button>submit</button>
-		</fieldset>
-	</form>
-	for _, restaurant := range restaurants {
-		<div>
-			{ restaurant.Name }
-		</div>
-	}
+templ Restaurants(name string, restaurants []sqlc.Restaurant) {
+@layout("restaurant")
+<form hx-post="/restaurants">
+	<fieldset>
+		<legend>Create a new Restaurant</legend>
+		<label id="name" name="name">name: </label>
+		<input id="name" name="name" value={ name } />
+		<button>submit</button>
+	</fieldset>
+</form>
+for _, restaurant := range restaurants {
+<div>
+	{ restaurant.Name }
+</div>
+}
 }
 
 templ htmlError(err string) {
-	<h1>{ err }</h1>
+<h1>{ err }</h1>
 }

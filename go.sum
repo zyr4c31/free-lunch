@@ -10,8 +10,6 @@ github.com/libsql/sqlite-antlr4-parser v0.0.0-20230802215326-5cb5bb604475 h1:6Pf
 github.com/libsql/sqlite-antlr4-parser v0.0.0-20230802215326-5cb5bb604475/go.mod h1:20nXSmcf0nAscrzqsXeC2/tA3KkV2eCiJqYuyAgl+ss=
 github.com/pkg/errors v0.9.1 h1:FEBLx1zS214owpjy7qsBeixbURkuhQAwrK5UwLGTwt4=
 github.com/pkg/errors v0.9.1/go.mod h1:bwawxfHBFNV+L2hUp1rHADufV3IMtnDRdf1r5NINEl0=
-github.com/sqlc-dev/sqlc v1.25.0 h1:+lI62q7IiLeEwM1tuX5dRmIKi2sdWY5Yd1d93VRRdQw=
-github.com/sqlc-dev/sqlc v1.25.0/go.mod h1:f2/ok8PBTvvf4KPZuofiksVOB0OCKGLWp+wyxTHapp8=
 github.com/tursodatabase/go-libsql v0.0.0-20240315132559-d8f1df912132 h1:wXqpy6alSak0B1JesxOthpDC3lp6JbpwSyXFOmy2f3E=
 github.com/tursodatabase/go-libsql v0.0.0-20240315132559-d8f1df912132/go.mod h1:sb520Yr+GHBsfL43FQgQ+rLFfuJkItgRWlTgbIQHVxA=
 golang.org/x/exp v0.0.0-20231006140011-7918f672742d h1:jtJma62tbqLibJ5sFQz8bKtEM8rJBtfilJ2qTU199MI=

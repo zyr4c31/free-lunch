@@ -1,11 +1,10 @@
-module github.com/zyr4c31/url-params
+module github.com/zyr4c31/free-lunch
 
 go 1.22.0
 
 require (
 	github.com/a-h/templ v0.2.639
 	github.com/joho/godotenv v1.5.1
-	github.com/sqlc-dev/sqlc v1.25.0
 	github.com/tursodatabase/go-libsql v0.0.0-20240315132559-d8f1df912132
 )
 
