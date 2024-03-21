@@ -1,5 +1,6 @@
 .env
 libsql-*
 *_templ.*
-./tmp
+tmp/
+sqlc/
 *.db

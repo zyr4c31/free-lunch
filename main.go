@@ -2,48 +2,83 @@ package main
 
 import (
 	"context"
+	"database/sql"
+	"fmt"
 	"log"
 	"net/http"
 	"os"
+	"path/filepath"
 	"time"
+
+	"github.com/joho/godotenv"
+	"github.com/tursodatabase/go-libsql"
+	"github.com/zyr4c31/url-params/sqlc"
 )
 
-func main() {
-	dbName := "local.db"
-	primaryUrl := os.Getenv("TURSO_URL")
-	authToken := os.Getenv("TURSO_TOKEN")
-	syncInterval := time.Minute
+type Restaurant struct {
+	ID   int
+	Name string
+}
 
-	tursoCfg := TursoEmbeddedReplicaConfig{
-		dbName:       dbName,
-		primaryUrl:   primaryUrl,
-		authToken:    authToken,
-		syncInterval: syncInterval,
-	}
+func queryRestaurants(db *sql.DB) []sqlc.Restaurant {
+	queries := sqlc.New(db)
 
-	log.Println(tursoCfg.createTables())
-
-	restaurants, err := tursoCfg.selectAllRestaurants()
+	restaurants, err := queries.ListRestaurants(context.Background())
 	if err != nil {
-		log.Println(err)
+		fmt.Fprintf(os.Stderr, "failed to execute query: %v\n", err)
+		os.Exit(1)
 	}
+
+	return restaurants
+}
+
+func main() {
+	godotenv.Load()
+	dbName := "local.db"
+	primaryUrl := "libsql://free-lunch-zyr4c31.turso.io"
+	authToken := os.Getenv("TURSO_TOKEN")
+
+	dir, err := os.MkdirTemp("", "libsql-*")
+	if err != nil {
+		fmt.Println("Error creating temporary directory:", err)
+		os.Exit(1)
+	}
+	defer os.RemoveAll(dir)
+
+	dbPath := filepath.Join(dir, dbName)
+
+	connectorStart := time.Now()
+	connector, err := libsql.NewEmbeddedReplicaConnector(dbPath, primaryUrl,
+		libsql.WithAuthToken(authToken),
+	)
+	if err != nil {
+		fmt.Println("Error creating connector:", err)
+		os.Exit(1)
+	}
+	defer connector.Close()
+	connectorDuration := time.Since(connectorStart)
+	log.Println(connectorDuration)
+
+	openStart := time.Now()
+	db := sql.OpenDB(connector)
+	defer db.Close()
+	openDuration := time.Since(openStart)
+	log.Println(openDuration)
+
+	queryStart := time.Now()
+	restaurants := queryRestaurants(db)
+	queryDuration := time.Since(queryStart)
+	log.Println(queryDuration)
+	totalDuration := time.Since(connectorStart)
+	log.Println(totalDuration)
+	log.Print(restaurants)
 
 	sm := http.NewServeMux()
-	sm.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
-		r.ParseForm()
-		var menuItems []string
-		for _, urlValue := range r.Form {
-			menuItems = urlValue
-		}
-		coffeeTemplate := coffee(menuItems, restaurants)
-		coffeeTemplate.Render(context.Background(), w)
-	})
 
 	server := http.Server{
-		Addr:    "localhost:8080",
+		Addr:    ":8080",
 		Handler: sm,
 	}
 
 	log.Fatalln(server.ListenAndServe())
-	defer os.RemoveAll(dir)
 }
