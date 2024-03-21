@@ -1,61 +1,67 @@
 package main
 
 import "github.com/zyr4c31/free-lunch/sqlc"
+import "fmt"
 
 templ layout(title string) {
-<html>
-
-<head>
-	<title>{ title } | free lunch</title>
-	<script src="htmx.min.js"></script>
-</head>
-
-<body>
-	<div id="error"></div>
-	<nav hx-boost>
-		<a href="/">home</a>
-		<a href="/restaurants">restaurants</a>
-	</nav>
-	<main>
-		{ children... }
-	</main>
-</body>
-
-</html>
+	<html>
+		<head>
+			<title>{ title } | free lunch</title>
+			<script src="htmx.min.js"></script>
+		</head>
+		<body>
+			<div id="error"></div>
+			<nav hx-boost>
+				<a href="/">home</a>
+				<a href="/restaurants">restaurants</a>
+			</nav>
+			<main>
+				{ children... }
+			</main>
+		</body>
+	</html>
 }
 
 templ coffee(menuItems []string) {
-@layout("coffee") {
-<form>
-	<fieldset>
-		<legend>Coffee/tea</legend>
-		for _, menuItem := range menuItems {
-		<input id={ menuItem } type="checkbox" name="menu-item" value={ menuItem } checked />
-		<label for={ menuItem }>{ menuItem }</label>
-		}
-	</fieldset>
-	<button type="submit">submit</button>
-</form>
-}
+	@layout("coffee") {
+		<form>
+			<fieldset>
+				<legend>Coffee/tea</legend>
+				for _, menuItem := range menuItems {
+					<input id={ menuItem } type="checkbox" name="menu-item" value={ menuItem } checked/>
+					<label for={ menuItem }>{ menuItem }</label>
+				}
+			</fieldset>
+			<button type="submit">submit</button>
+		</form>
+	}
 }
 
 templ Restaurants(name string, restaurants []sqlc.Restaurant) {
-@layout("restaurant")
-<form hx-post="/restaurants">
-	<fieldset>
-		<legend>Create a new Restaurant</legend>
-		<label id="name" name="name">name: </label>
-		<input id="name" name="name" value={ name } />
-		<button>submit</button>
-	</fieldset>
-</form>
-for _, restaurant := range restaurants {
-<div>
-	{ restaurant.Name }
-</div>
+	@layout("restaurant")
+	<form>
+		<fieldset>
+			<legend>Create a new Restaurant</legend>
+			<label for="name">name: </label>
+			<input id="name" name="name" value={ name }/>
+			<button hx-post="/restaurants">submit</button>
+		</fieldset>
+	</form>
+	for _, restaurant := range restaurants {
+		<button hx-get={ fmt.Sprintf("/restaurants/%v", restaurant.ID) }>
+			{ restaurant.Name }
+		</button>
+	}
+	<div id="menu"></div>
 }
+
+templ Menu(menuItems []sqlc.MenuItem) {
+	for _, menuItem := range menuItems {
+		<input type="checkbox" id={ fmt.Sprint(menuItem.ID) } name="name"/>
+		<label for={ fmt.Sprint(menuItem.ID) }>{ fmt.Sprintf("%v - %v",menuItem.Name,menuItem.Price) }</label>
+	}
 }
 
 templ htmlError(err string) {
-<h1>{ err }</h1>
+	<h1>{ err }</h1>
 }
