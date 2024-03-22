@@ -9,7 +9,7 @@ templ layout(title string) {
 			<title>{ title } | free lunch</title>
 			<script src="htmx.min.js"></script>
 		</head>
-		<body>
+		<body style="background: black; color: white;">
 			<div id="error"></div>
 			<nav hx-boost>
 				<a href="/">home</a>
@@ -48,14 +48,26 @@ templ Restaurants(name string, restaurants []sqlc.Restaurant) {
 		</fieldset>
 	</form>
 	for _, restaurant := range restaurants {
-		<button hx-get={ fmt.Sprintf("/restaurants/%v", restaurant.ID) }>
+		<button hx-get={ fmt.Sprintf("/restaurants/%v", restaurant.ID) } hx-target="#create-menu" hx-push-url="true">
 			{ restaurant.Name }
 		</button>
 	}
-	<div id="menu"></div>
+	<form id="create-menu"></form>
 }
 
-templ Menu(menuItems []sqlc.MenuItem) {
+templ CreateMenu(menuItem, price string) {
+	<fieldset>
+		<legend>Create Menu Items</legend>
+		<label for="menu-item">menu item:</label>
+		<input id="menu-item" type="text" name="menu-item" value={ menuItem }/>
+		<label for="price">price:</label>
+		<input id="price" type="number" name="price" value={ price }/>
+		<button hx-get="/restaurants/1" hx-target="#menu">submit</button>
+	</fieldset>
+}
+
+templ Menu(menuItem, price string, menuItems []sqlc.MenuItem) {
+	@CreateMenu(menuItem, price)
 	for _, menuItem := range menuItems {
 		<input type="checkbox" id={ fmt.Sprint(menuItem.ID) } name="name"/>
 		<label for={ fmt.Sprint(menuItem.ID) }>{ fmt.Sprintf("%v - %v",menuItem.Name,menuItem.Price) }</label>

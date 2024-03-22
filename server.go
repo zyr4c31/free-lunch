@@ -7,6 +7,8 @@ import (
 	"log"
 	"net/http"
 	"os"
+	"strconv"
+	"strings"
 
 	"github.com/zyr4c31/free-lunch/sqlc"
 )
@@ -16,9 +18,12 @@ func newServer(db *sql.DB) *http.Server {
 	sm := http.NewServeMux()
 	fs := http.FileServer(http.Dir("."))
 
-	sm.Handle("/", fs)
+	assetPath := "/assets"
 
-	sm.HandleFunc("GET /restaurants", func(w http.ResponseWriter, r *http.Request) {
+	sp := http.StripPrefix(assetPath, fs)
+	sm.Handle("GET "+assetPath, sp)
+
+	sm.HandleFunc("GET /", func(w http.ResponseWriter, r *http.Request) {
 		r.ParseForm()
 		form := r.Form
 		var name string
@@ -52,13 +57,36 @@ func newServer(db *sql.DB) *http.Server {
 		if err != nil {
 			log.Fatalln(err)
 		}
+		w.Header().Add("Content-Type", "text/html")
 		w.Header().Add("HX-Refresh", "true")
 	})
 
-	sm.HandleFunc("GET /restaurants/:restaurant-id", func(w http.ResponseWriter, r *http.Request) {
+	sm.HandleFunc("GET /restaurants/", func(w http.ResponseWriter, r *http.Request) {
+		r.ParseForm()
+		form := r.Form
+		menuItem := form.Get("menu-item")
+		price := form.Get("price")
+
+		stringUrl := r.URL.String()
+		urlArray := strings.Split(stringUrl, "/")
+		param := urlArray[len(urlArray)-1]
+
+		intParam, _ := strconv.ParseInt(param, 10, 64)
+
+		queries := sqlc.New(db)
+		menuItems, err := queries.ListMenuItemsForRestaurant(r.Context(), intParam)
+		if err != nil {
+			htmlError(err.Error()).Render(r.Context(), w)
+			return
+		}
+
+		Menu(menuItem, price, menuItems).Render(r.Context(), w)
 	})
 
-	hostname, _ := os.Hostname()
+	hostname, err := os.Hostname()
+	if err != nil {
+		log.Fatalln(err)
+	}
 	port := os.Getenv("PORT")
 	addr := fmt.Sprintf("%v:%v", hostname, port)
 	log.Println("hosted on", addr)
