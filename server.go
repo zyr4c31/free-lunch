@@ -48,9 +48,9 @@ func newServer(db *sql.DB) *http.Server {
 		name := form.Get("name")
 
 		queries := sqlc.New(db)
-		err := queries.CreateRestaurant(context.Background(), name)
+		err := queries.CreateRestaurant(r.Context(), name)
 		if err != nil {
-			log.Fatalln(err)
+			errorHandler(err.Error(), r.Context(), w)
 		}
 		w.Header().Add("Content-Type", "text/html")
 		w.Header().Add("HX-Refresh", "true")
