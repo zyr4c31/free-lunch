@@ -3,4 +3,4 @@ air:
 	air
 
 templ:
-	templ generate --watch --proxy=http://zarch-dt:8080
+	templ generate --watch --proxy=http://localhost:8080

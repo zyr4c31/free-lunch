@@ -12,17 +12,26 @@ import (
 	"github.com/zyr4c31/free-lunch/sqlc"
 )
 
+func errorHandler(err string, ctx context.Context, w http.ResponseWriter) {
+	log.Println(err)
+	w.Header().Add("HX-Retarget", "#error")
+	template := htmlError(err)
+	template.Render(ctx, w)
+}
+
 func newServer(db *sql.DB) *http.Server {
 
 	sm := http.NewServeMux()
-	fs := http.FileServer(http.Dir("."))
-	sm.Handle("GET /", fs)
+	fs := http.FileServer(http.Dir("js"))
+	sp := http.StripPrefix("/js/", fs)
+	sm.Handle("GET /js/", sp)
 
-	sm.HandleFunc("GET /restaurants", func(w http.ResponseWriter, r *http.Request) {
+	sm.HandleFunc("GET /", func(w http.ResponseWriter, r *http.Request) {
 		queries := sqlc.New(db)
 		restaurants, err := queries.ListRestaurants(context.Background())
 		if err != nil {
-			log.Fatalln(err)
+			errorHandler(err.Error(), r.Context(), w)
+			return
 		}
 		template := Restaurants(restaurants)
 		template.Render(r.Context(), w)
@@ -32,9 +41,7 @@ func newServer(db *sql.DB) *http.Server {
 		r.ParseForm()
 		form := r.PostForm
 		if form.Has("name") == false {
-			w.Header().Add("HX-Retarget", "#error")
-			template := htmlError("no input")
-			template.Render(context.Background(), w)
+			errorHandler("form doesn't have name", r.Context(), w)
 			return
 		}
 
@@ -61,19 +68,15 @@ func newServer(db *sql.DB) *http.Server {
 		queries := sqlc.New(db)
 		menuItems, err := queries.ListMenuItemsForRestaurant(r.Context(), restaurantID)
 		if err != nil {
-			htmlError(err.Error()).Render(r.Context(), w)
+			errorHandler(err.Error(), r.Context(), w)
 			return
 		}
 
 		Menu(menuItem, price, menuItems).Render(r.Context(), w)
 	})
 
-	hostname, err := os.Hostname()
-	if err != nil {
-		log.Fatalln(err)
-	}
 	port := os.Getenv("PORT")
-	addr := fmt.Sprintf("%v:%v", hostname, port)
+	addr := fmt.Sprintf(":%v", port)
 	log.Println("hosted on", addr)
 	server := http.Server{
 		Addr:    addr,
