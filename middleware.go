@@ -6,12 +6,12 @@ import (
 	"time"
 )
 
-type wrappedWriter struct {
+type responseWriterWithStatusCode struct {
 	http.ResponseWriter
 	statusCode int
 }
 
-func (w *wrappedWriter) writeHeader(statusCode int) {
+func (w *responseWriterWithStatusCode) writeHeader(statusCode int) {
 	w.ResponseWriter.WriteHeader(statusCode)
 	w.statusCode = statusCode
 }
@@ -19,11 +19,11 @@ func (w *wrappedWriter) writeHeader(statusCode int) {
 func logging(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		start := time.Now()
-		wrapped := &wrappedWriter{
+		writer := &responseWriterWithStatusCode{
 			ResponseWriter: w,
 			statusCode:     http.StatusOK,
 		}
-		next.ServeHTTP(wrapped, r)
-		log.Println(wrapped.statusCode, r.Method, r.URL.Path, time.Since(start))
+		next.ServeHTTP(writer, r)
+		log.Println(writer.statusCode, r.Method, r.URL.Path, time.Since(start))
 	})
 }

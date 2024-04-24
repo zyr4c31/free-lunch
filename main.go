@@ -5,8 +5,6 @@ import (
 )
 
 func main() {
-	db := newDBConnection()
-	defer db.Close()
-	server := newServer(db)
+	server := newServer()
 	log.Fatalln(server.ListenAndServe())
 }

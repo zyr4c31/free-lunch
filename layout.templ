@@ -4,64 +4,61 @@ import "github.com/zyr4c31/free-lunch/sqlc"
 import "fmt"
 
 templ layout(title string) {
-<html>
-
-<head>
-	<title>{ title } | free lunch</title>
-	<script src="/js/htmx.min.js"></script>
-</head>
-
-<body style="background: black; color: white;">
-	<div id="error"></div>
-	<nav hx-boost>
-		<a href="/">home</a>
-		<a href="/restaurants">restaurants</a>
-	</nav>
-	<main>
-		{ children... }
-	</main>
-</body>
-
-</html>
+	<html>
+		<head>
+			<title>{ title } | free lunch</title>
+			<script src="/js/htmx.min.js"></script>
+		</head>
+		<body style="background: black; color: white;">
+			<div id="error"></div>
+			<nav hx-boost>
+				<a href="/">home</a>
+				<a href="/admin">admin</a>
+			</nav>
+			<main>
+				{ children... }
+			</main>
+		</body>
+	</html>
 }
 
 templ Restaurants(restaurants []sqlc.Restaurant) {
-@layout("restaurant")
-<form>
-	<fieldset>
-		<legend>Create a new Restaurant</legend>
-		<label for="name">name: </label>
-		<input id="name" name="name" />
-		<button hx-post="/restaurants">submit</button>
-	</fieldset>
-</form>
-for _, restaurant := range restaurants {
-<button hx-get={ fmt.Sprintf("/restaurants/%v", restaurant.ID) } hx-target="#restaurant" hx-push-url="true">
-	{ restaurant.Name }
-</button>
-}
-<form id="restaurant"></form>
+	@layout("restaurant")
+	<form>
+		<fieldset>
+			<legend>Create a new Restaurant</legend>
+			<label for="name">name: </label>
+			<input id="name" name="name"/>
+			<button hx-post="/restaurants">submit</button>
+		</fieldset>
+	</form>
+	for _, restaurant := range restaurants {
+		<button hx-get={ fmt.Sprintf("/restaurants/%v", restaurant.ID) } hx-target="#restaurant" hx-push-url="true">
+			{ restaurant.Name }
+		</button>
+	}
+	<form id="restaurant"></form>
 }
 
 templ CreateMenu(menuItem, price string) {
-<fieldset>
-	<legend>Create Menu Items</legend>
-	<label for="menu-item">menu item:</label>
-	<input id="menu-item" type="text" name="menu-item" value={ menuItem } />
-	<label for="price">price:</label>
-	<input id="price" type="number" name="price" value={ price } />
-	<button hx-post="/restaurants/" hx-target="#menu">submit</button>
-</fieldset>
+	<fieldset>
+		<legend>Create Menu Items</legend>
+		<label for="menu-item">menu item:</label>
+		<input id="menu-item" type="text" name="menu-item" value={ menuItem }/>
+		<label for="price">price:</label>
+		<input id="price" type="number" name="price" value={ price }/>
+		<button hx-post="/restaurants/" hx-target="#menu">submit</button>
+	</fieldset>
 }
 
 templ Menu(menuItem, price string, menuItems []sqlc.MenuItem) {
-@CreateMenu(menuItem, price)
-for _, menuItem := range menuItems {
-<input type="checkbox" id={ fmt.Sprint(menuItem.ID) } name="name" />
-<label for={ fmt.Sprint(menuItem.ID) }>{ fmt.Sprintf("%v - %v",menuItem.Name,menuItem.Price) }</label>
-}
+	@CreateMenu(menuItem, price)
+	for _, menuItem := range menuItems {
+		<input type="checkbox" id={ fmt.Sprint(menuItem.ID) } name="name"/>
+		<label for={ fmt.Sprint(menuItem.ID) }>{ fmt.Sprintf("%v - %v",menuItem.Name,menuItem.Price) }</label>
+	}
 }
 
 templ htmlError(err string) {
-<h1>{ err }</h1>
+	<h1>{ err }</h1>
 }

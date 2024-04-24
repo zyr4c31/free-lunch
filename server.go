@@ -12,6 +12,21 @@ import (
 	"github.com/zyr4c31/free-lunch/sqlc"
 )
 
+type htmlErr struct {
+	err error
+}
+
+func (err htmlErr) HandleErr(ctx context.Context, w http.ResponseWriter) {
+	log.Println(err)
+	w.Header().Add("HX-Retarget", "#error")
+	template := htmlError(err.err.Error())
+	template.Render(ctx, w)
+}
+
+type erroring interface {
+	htmlErr
+}
+
 func errorHandler(err string, ctx context.Context, w http.ResponseWriter) {
 	log.Println(err)
 	w.Header().Add("HX-Retarget", "#error")
@@ -19,18 +34,22 @@ func errorHandler(err string, ctx context.Context, w http.ResponseWriter) {
 	template.Render(ctx, w)
 }
 
-func newServer(db *sql.DB) *http.Server {
+var DB *sql.DB
+
+func newServer() *http.Server {
+	DB = newDBConnection()
 
 	sm := http.NewServeMux()
 	fs := http.FileServer(http.Dir("js"))
 	sp := http.StripPrefix("/js/", fs)
 	sm.Handle("GET /js/", sp)
 
-	sm.HandleFunc("GET /", func(w http.ResponseWriter, r *http.Request) {
-		queries := sqlc.New(db)
+	sm.HandleFunc("GET /admin", func(w http.ResponseWriter, r *http.Request) {
+		queries := sqlc.New(DB)
 		restaurants, err := queries.ListRestaurants(context.Background())
 		if err != nil {
-			errorHandler(err.Error(), r.Context(), w)
+			htmlErr := htmlErr{err: err}
+			htmlErr.HandleErr(r.Context(), w)
 			return
 		}
 		template := Restaurants(restaurants)
@@ -47,7 +66,7 @@ func newServer(db *sql.DB) *http.Server {
 
 		name := form.Get("name")
 
-		queries := sqlc.New(db)
+		queries := sqlc.New(DB)
 		err := queries.CreateRestaurant(r.Context(), name)
 		if err != nil {
 			errorHandler(err.Error(), r.Context(), w)
@@ -65,7 +84,7 @@ func newServer(db *sql.DB) *http.Server {
 
 		restaurantID, _ := strconv.ParseInt(pathRestaurantID, 10, 64)
 
-		queries := sqlc.New(db)
+		queries := sqlc.New(DB)
 		menuItems, err := queries.ListMenuItemsForRestaurant(r.Context(), restaurantID)
 		if err != nil {
 			errorHandler(err.Error(), r.Context(), w)
